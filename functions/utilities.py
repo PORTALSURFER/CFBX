@@ -1,4 +1,4 @@
-# Copyright UHX, No rights reserved.
+# Copyright PORTALSURFER, No rights reserved.
 # https: //www.blender.org/about/license/
 
 import bpy
@@ -84,7 +84,7 @@ def report_error(message):
         if 'RuntimeError: ' in message:
             message = message.split('RuntimeError: ')[-1][:-1]
 
-        bpy.context.window_manager.UHXporter.error_message = message
+        bpy.context.window_manager.CFBX.error_message = message
         bpy.context.window_manager.popup_menu(
             draw_error_message, title="Error", icon='ERROR')
     else:
@@ -102,7 +102,7 @@ def report_warning(message):
         if 'RuntimeError: ' in message:
             message = message.split('RuntimeError: ')[-1][:-1]
 
-        bpy.context.window_manager.UHXporter.error_message = message
+        bpy.context.window_manager.CFBX.error_message = message
         bpy.context.window_manager.popup_menu(
             draw_error_message, title="Warning", icon='ERROR')
     else:
@@ -118,4 +118,5 @@ def draw_error_message(self, context):
     :param object context: This parameter will take the current blender context by default,
     or can be passed an explicit context.
     """
-    self.layout.label(text=bpy.context.window_manager.UHXporter.error_message)
+    self.layout.label(
+        text=bpy.context.window_manager.CFBX.error_message)

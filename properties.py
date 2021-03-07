@@ -1,11 +1,11 @@
-# Copyright UHX, No rights reserved.
+# Copyright PORTALSURFER, No rights reserved.
 # https: //www.blender.org/about/license/
 
 import bpy
 from .functions import utilities, graphics
 
 
-class UHXporterProperties:
+class CFBXProperties:
     """
     This class holds the variables for the addon.
     """
@@ -14,7 +14,7 @@ class UHXporterProperties:
     error_message: bpy.props.StringProperty(default='')
 
 
-class UHXporterUIProperties:
+class CFBXUIProperties:
     """
     This class holds the UI variables for the addon
     """
@@ -41,13 +41,13 @@ class UHXporterUIProperties:
     )
 
 
-class UHXporterWindowManagerPropertyGroup(bpy.types.PropertyGroup, UHXporterProperties):
+class CFBXWindowManagerPropertyGroup(bpy.types.PropertyGroup, CFBXProperties):
     """
     This class defines a property group that stores constants in the window manager context.
     """
 
 
-class UHXCollectionProperties:
+class CFBXCollectionProperties:
     """
     This class holds the variables for the Collections
     """
@@ -61,14 +61,14 @@ class UHXCollectionProperties:
     )
     fbx_folder_path: bpy.props.StringProperty(
         name="FBX Export Path",
-        default=r"/UHXporter/Collection/",
+        default=r"/CFBX/Collection/",
         # update=utilities.auto_format_unreal_mesh_folder_path,
         description=("This is the mesh export path.")
     )
     icon_draw_handle: bpy.props.IntProperty(default=0)
 
 
-class UHXCollectionPropertyGroup(bpy.types.PropertyGroup, UHXCollectionProperties):
+class CFBXCollectionPropertyGroup(bpy.types.PropertyGroup, CFBXCollectionProperties):
     """
     This class defines a property group that stores constants in the window manager context.
     """
@@ -79,15 +79,15 @@ def register():
     This function registers the property group class and adds it to the
     window manager context when the addon is enabled.
     """
-    bpy.utils.register_class(UHXporterWindowManagerPropertyGroup)
-    bpy.utils.register_class(UHXCollectionPropertyGroup)
+    bpy.utils.register_class(CFBXWindowManagerPropertyGroup)
+    bpy.utils.register_class(CFBXCollectionPropertyGroup)
 
-    bpy.types.WindowManager.UHXporter = bpy.props.PointerProperty(
-        type=UHXporterWindowManagerPropertyGroup)
+    bpy.types.WindowManager.CFBX = bpy.props.PointerProperty(
+        type=CFBXWindowManagerPropertyGroup)
 
-    bpy.types.Collection.UHXporter_settings = bpy.props.PointerProperty(
-        type=UHXCollectionPropertyGroup,
-        name="UHXporter Settings"
+    bpy.types.Collection.CFBX_settings = bpy.props.PointerProperty(
+        type=CFBXCollectionPropertyGroup,
+        name="CFBX Settings"
     )
 
 
@@ -96,8 +96,8 @@ def unregister():
     This function unregisters the property group class and deletes it from the window manager context when
     the addon is disabled.
     """
-    bpy.utils.unregister_class(UHXCollectionPropertyGroup)
-    bpy.utils.unregister_class(UHXporterWindowManagerPropertyGroup)
+    bpy.utils.unregister_class(CFBXCollectionPropertyGroup)
+    bpy.utils.unregister_class(CFBXWindowManagerPropertyGroup)
 
-    del bpy.types.Collection.UHXporter_settings
-    del bpy.types.WindowManager.UHXporter
+    del bpy.types.Collection.CFBX_settings
+    del bpy.types.WindowManager.CFBX

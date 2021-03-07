@@ -1,12 +1,13 @@
-# Copyright UHX, No rights reserved.
+# Copyright PORTALSURFER, No rights reserved.
 # https: //www.blender.org/about/license/
 
 import bpy
-from ..properties import UHXporterProperties, UHXporterUIProperties
+from ..properties import CFBXProperties, CFBXUIProperties
 from ..functions import graphics
 # from ..functions import utilities
 
-class ExportPreferences(UHXporterProperties, UHXporterUIProperties, bpy.types.AddonPreferences):
+
+class ExportPreferences(CFBXProperties, CFBXUIProperties, bpy.types.AddonPreferences):
     """
     Settings interface class
     """
@@ -27,11 +28,11 @@ class ExportPreferences(UHXporterProperties, UHXporterUIProperties, bpy.types.Ad
         if properties.options_type == 'paths':
 
             row = layout.row()
-            row.prop(bpy.context.view_layer.active_layer_collection.collection.UHXporter_settings,
+            row.prop(bpy.context.view_layer.active_layer_collection.collection.CFBX_settings,
                      'should_export', text="Should Export")
-            row.prop(bpy.context.view_layer.active_layer_collection.collection.UHXporter_settings,
+            row.prop(bpy.context.view_layer.active_layer_collection.collection.CFBX_settings,
                      'export_name_prefix', text="Prefix")
 
             row = layout.row()
-            row.prop(bpy.context.view_layer.active_layer_collection.collection.UHXporter_settings,
+            row.prop(bpy.context.view_layer.active_layer_collection.collection.CFBX_settings,
                      'fbx_folder_path', text="Export Path")

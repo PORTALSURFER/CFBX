@@ -1,4 +1,4 @@
-# Copyright UHX, No rights reserved.
+# Copyright PORTALSURFER, No rights reserved.
 # https: //www.blender.org/about/license/
 
 import bpy
@@ -10,7 +10,7 @@ class Export(bpy.types.Operator):
     """
     Export the current active collection to target fbx file
     """
-    bl_idname = "wm.uhx_export_fbx"
+    bl_idname = "wm.cbfx_export_fbx"
     bl_label = "Export collection to FBX"
 
     def execute(self, context):
@@ -22,7 +22,7 @@ class PropertiesDialog(bpy.types.Operator):
     """
     Open settings dialog
     """
-    bl_idname = "wm.uhx_properties_dialog"
+    bl_idname = "wm.cbfx_properties_dialog"
     bl_label = "Opens the properties"
 
     def execute(self, context):
@@ -38,12 +38,12 @@ class PropertiesDialog(bpy.types.Operator):
         export_preferences.ExportPreferences.draw(self, context, properties)
 
 
-class UpdateDrawUHXCollectionIcon(bpy.types.Operator):
+class UpdateDrawCollectionIcon(bpy.types.Operator):
     """
     Draws an graphic in the collection menu to inform if the selected collection is export ready
     """
-    bl_idname = "object.uhx_update_collection_graphic"
-    bl_label = "UHXCollection graphic"
+    bl_idname = "object.cbfx_update_collection_graphic"
+    bl_label = "CFBX Collection graphic"
     bl_description = "Operator for collection graphic"
     bl_options = {'REGISTER'}
 

@@ -1,4 +1,4 @@
-# Copyright UHX, No rights reserved.
+# Copyright SURFER, No rights reserved.
 # https: //www.blender.org/about/license/
 
 import bpy
@@ -19,7 +19,7 @@ def create_export_buffer(context):
     # TODO currently will create a buffer even when there are no objects to add to it
     export_collection = None
     # check if an export buffer exists, if so, delete it.
-    export_collection_name = 'UHXporter Export Buffer'
+    export_collection_name = 'CFBX Export Buffer'
     export_collection = None
 
     # if the buffer does not exist create it
@@ -92,7 +92,7 @@ def prep_data(self, context):
                     obj_copy = src_obj.copy()
                     obj_copy.data = src_obj.data.copy()
                     export_objects.append(obj_copy)
-                    obj_copy.name = "UHXporter_object"
+                    obj_copy.name = "CFBX_object"
                     export_collection.objects.link(obj_copy)
                     obj_copy.select_set(True)
 
@@ -109,7 +109,7 @@ def export(self, context):
     """
     This function export
     """
-    print("\n RUNNING UHXporter...")
+    print("\n RUNNING CFBX...")
 
     prep_data(self, context)
 

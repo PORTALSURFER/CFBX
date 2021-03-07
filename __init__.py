@@ -1,19 +1,19 @@
-# Copyright UHX, No rights reserved.
+# Copyright PORTALSURFER, No rights reserved.
 # https: //www.blender.org/about/license/
 
 import bpy
 import importlib
 from . import operators
 from . import properties
-from .functions import graphics
+from .functions import graphics, export, utilities
 from .ui import header_menu, export_preferences
 
 bl_info = {
-    "name": "UHXporter",
-    "author": "UHX",
+    "name": "CFBX",
+    "author": "PORTALSURFER",
     "blender": (2, 80, 0),
     "version": (0, 0, 1),
-    "location": "Header -> UHXporter -> Export",
+    "location": "Outliner -> ContextMenu -> CFBX",
     "description": "Export active collection as FBX",
     "warning": "",
     "category": "Export"
@@ -28,26 +28,11 @@ modules = [
 classes = [
     operators.Export,
     operators.PropertiesDialog,
-    operators.UpdateDrawUHXCollectionIcon,
+    operators.UpdateDrawCollectionIcon,
     export_preferences.ExportPreferences,
-    header_menu.TOPBAR_MT_UHX_export,
-    header_menu.TOPBAR_MT_UHX_set_properties
+    header_menu.TOPBAR_MT_CFBX_export,
+    header_menu.TOPBAR_MT_CFBX_set_properties
 ]
-
-
-class TEST(bpy.types.Panel):
-    bl_idname = "OUTLINER_HT_UHXheader"
-    bl_label = "UHXporter Collection Header"
-    bl_space_type = 'OUTLINER'
-    bl_region_type = 'WINDOW'
-    bl_context = "collection"
-
-    def __init__(self):
-        print("things")
-
-    def draw(self, context):
-        print("draw panel")
-        self.layout.label(text="test")
 
 
 def register():
@@ -65,9 +50,7 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    header_menu.add_uhxporter_menu()
-
-    bpy.utils.register_class(TEST)
+    header_menu.add_menus()
 
 
 def unregister():
@@ -75,9 +58,7 @@ def unregister():
     This function unregisters the addon classes when the addon is disabled.
     """
     # remove the header menu
-    header_menu.remove_parent_menu()
-
-    bpy.utils.unregister_class(TEST)
+    header_menu.remove_menus()
 
     # unregister the classes
     for cls in reversed(classes):
