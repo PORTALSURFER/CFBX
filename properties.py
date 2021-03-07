@@ -61,7 +61,7 @@ class CFBXCollectionProperties:
     )
     fbx_folder_path: bpy.props.StringProperty(
         name="FBX Export Path",
-        default=r"/CFBX/Collection/",
+        default=r"Set an export path here",
         # update=utilities.auto_format_unreal_mesh_folder_path,
         description=("This is the mesh export path.")
     )

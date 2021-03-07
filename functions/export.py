@@ -85,6 +85,8 @@ def prep_data(self, context):
     mesh_objects = []
     curve_objects = []
 
+    instance_collection_override = None
+
     for src_obj in context.view_layer.objects:
         for obj_collection in src_obj.users_collection:
             # print(obj_collection.name)
@@ -99,14 +101,15 @@ def prep_data(self, context):
                         export_collection.objects.link(obj_copy)
                         obj_copy.select_set(True)
 
-                        mesh_objects.append(obj_copy)
-                        override = context.copy()
-                        override['selected_objects'] = mesh_objects
-                        override['active_object'] = mesh_objects[0]
-                        override['object'] = mesh_objects[0]
-                        override['selected_editable_objects'] = mesh_objects
+                        # attempting to apply modifiers
+                        # mesh_objects.append(obj_copy)
+                        # override = context.copy()
+                        # override['selected_objects'] = mesh_objects
+                        # override['active_object'] = mesh_objects[0]
+                        # override['object'] = mesh_objects[0]
+                        # override['selected_editable_objects'] = mesh_objects
+                        # bpy.ops.object.convert(override, target='MESH')
 
-                        bpy.ops.object.convert(override, target='MESH')
                     if src_obj.type == 'EMPTY' and src_obj.instance_type == 'COLLECTION':
                         obj_copy = src_obj.copy()
                         obj_copy.instance_collection = src_obj.instance_collection
@@ -114,14 +117,14 @@ def prep_data(self, context):
                         export_collection.objects.link(obj_copy)
 
                         instance_collision_objects.append(obj_copy)
-                        override = context.copy()
-                        override['selected_objects'] = instance_collision_objects
-                        override['active_object'] = instance_collision_objects[0]
-                        override['object'] = instance_collision_objects[0]
-                        override['selected_editable_objects'] = instance_collision_objects
-                        # print(override)
+                        instance_collection_override = context.copy()
+                        instance_collection_override['selected_objects'] = instance_collision_objects
+                        instance_collection_override['active_object'] = instance_collision_objects[0]
+                        instance_collection_override['object'] = instance_collision_objects[0]
+                        instance_collection_override['selected_editable_objects'] = instance_collision_objects
 
-                        bpy.ops.object.duplicates_make_real(override)
+                        bpy.ops.object.duplicates_make_real(
+                            instance_collection_override)
 
                         bpy.data.objects.remove(obj_copy)
                     if src_obj.type == 'CURVE':
@@ -130,19 +133,20 @@ def prep_data(self, context):
                         obj_copy.name = "CFBX_CURVE"
                         export_collection.objects.link(obj_copy)
 
-                        curve_objects.append(obj_copy)
-                        override = context.copy()
-                        override['selected_objects'] = curve_objects
-                        override['active_object'] = curve_objects[0]
-                        override['object'] = curve_objects[0]
-                        override['selected_editable_objects'] = curve_objects
+                        # curve_objects.append(obj_copy)
+                        # override = context.copy()
+                        # override['selected_objects'] = curve_objects
+                        # override['active_object'] = curve_objects[0]
+                        # override['object'] = curve_objects[0]
+                        # override['selected_editable_objects'] = curve_objects
 
-                        bpy.ops.object.convert(override, target='MESH')
+                        # bpy.ops.object.convert(override, target=`'MESH')
 
     # combine all objects
     # # join objects
 
     context.view_layer.objects.active = export_objects[0]
+    bpy.ops.object.convert(target='MESH')
     bpy.ops.object.join()
 
     export_data['OBJECT'] = context.view_layer.objects.active
