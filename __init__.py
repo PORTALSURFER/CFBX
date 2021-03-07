@@ -26,9 +26,9 @@ modules = [
 ]
 
 classes = [
-    operators.Export,
-    operators.PropertiesDialog,
-    operators.UpdateDrawCollectionIcon,
+    operators.CFBX_OT_export_active_collection,
+    operators.CFBX_OT_open_properties,
+    operators.CFBX_OT_select_path,
     export_preferences.ExportPreferences,
     header_menu.TOPBAR_MT_CFBX_export,
     header_menu.TOPBAR_MT_CFBX_set_properties

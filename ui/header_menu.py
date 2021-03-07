@@ -39,7 +39,7 @@ class TOPBAR_MT_CFBX(bpy.types.Menu):
         pass
 
 
-def CFBX_menu(self, context):
+def cfbx_menu(self, context):
     """
     This function creates the CFBX menu item.
     This will be referenced in other functions as a means of appending and removing it's contents from the top bar editor class definition.
@@ -69,12 +69,46 @@ def properties_menu(self, context):
     self.layout.menu(TOPBAR_MT_CFBX_set_properties.bl_idname)
 
 
+def test(self, context):
+
+    layout = self.layout
+
+    # input status
+    layout.template_input_status()
+
+    layout.separator_spacer()
+
+    # Messages
+    layout.template_reports_banner()
+
+    # # Progress Bar
+    layout.template_running_jobs()
+
+    layout.separator_spacer()
+
+    row = layout.row(align=True)
+    row.alignment = 'RIGHT'
+    row.scale_x = 2
+    # row.split(align=False, factor=0.1)
+    # row.split(factor=0.0, align=True)
+    if context.view_layer.active_layer_collection.collection.CFBX_settings.should_export:
+        row.prop(context.view_layer.active_layer_collection.collection.CFBX_settings,
+                 'fbx_folder_path', emboss=True, text="", expand=False, icon="SNAP_VOLUME")
+        row.operator("hexporter.path_selector", text="", icon='FILE_FOLDER')
+
+        layout.separator_spacer()
+
+    row = layout.row()
+    row.alignment = 'RIGHT'
+
+    # Stats & Info
+    row.label(text=context.screen.statusbar_info(), translate=False)
+
+    statusbar_info(self, context)
+
+
 def statusbar_info(self, context):
     # TODO properly comment this function
-
-    if bpy.context.view_layer.active_layer_collection.collection.CFBX_settings.should_export:
-        self.layout.prop(bpy.context.view_layer.active_layer_collection.collection,
-                         'name', emboss=False, text="| CFBX Asset", expand=True, icon="SNAP_VOLUME")
 
     active_collection = context.view_layer.active_layer_collection
 
@@ -100,10 +134,13 @@ def statusbar_info(self, context):
             del globals()[icon_draw_handler]
 
 
-def tester(self, context):
+def collection_menu(self, context):
     layout = self.layout
     layout.prop(bpy.context.view_layer.active_layer_collection.collection.CFBX_settings,
-                'should_export')
+                'should_export', text="CFBX object")
+    if bpy.context.view_layer.active_layer_collection.collection.CFBX_settings.should_export:
+        layout.operator("wm.cbfx_export_fbx",
+                        text="Export Collection", icon='EXPORT')
     layout.separator()
 
 
@@ -111,13 +148,14 @@ def add_menus():
     """This function adds the parent "CFBX" menu item by appending the CFBX_menu()
     function to the top bar editor class definition.
     """
-    bpy.types.OUTLINER_MT_collection.prepend(tester)
+    bpy.types.OUTLINER_MT_collection.prepend(collection_menu)
 
-    bpy.types.STATUSBAR_HT_header.append(statusbar_info)
+    bpy.types.STATUSBAR_HT_header.draw = test
+    # bpy.types.STATUSBAR_HT_header.append(statusbar_info)
 
     if not hasattr(bpy.types, TOPBAR_MT_CFBX.bl_idname):
         bpy.utils.register_class(TOPBAR_MT_CFBX)
-        bpy.types.TOPBAR_MT_editor_menus.append(CFBX_menu)
+        bpy.types.TOPBAR_MT_editor_menus.append(cfbx_menu)
 
     try:
         bpy.types.TOPBAR_MT_CFBX.remove(export_menu)
@@ -135,8 +173,8 @@ def remove_menus():
     if hasattr(bpy.types, TOPBAR_MT_CFBX.bl_idname):
         bpy.utils.unregister_class(TOPBAR_MT_CFBX)
 
-    bpy.types.TOPBAR_MT_editor_menus.remove(CFBX_menu)
+    bpy.types.TOPBAR_MT_editor_menus.remove(cfbx_menu)
 
     bpy.types.STATUSBAR_HT_header.remove(statusbar_info)
 
-    bpy.types.OUTLINER_MT_collection.remove(tester)
+    bpy.types.OUTLINER_MT_collection.remove(collection_menu)

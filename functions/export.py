@@ -75,20 +75,14 @@ def prep_data(self, context):
     source_collections.append(source_collection_root)
     get_collection_children(source_collection_root, source_collections)
 
-    print("___")
-    for collection in source_collections:
-        print(collection.name)
-
-    print("___")
-
     bpy.ops.object.select_all(action='DESELECT')
 
     for src_obj in bpy.data.objects:
         for obj_collection in src_obj.users_collection:
-            print(obj_collection.name)
+            # print(obj_collection.name)
             for collection in source_collections:
                 if collection.name == obj_collection.name:
-                    print(src_obj.name)
+                    # print(src_obj.name)
                     obj_copy = src_obj.copy()
                     obj_copy.data = src_obj.data.copy()
                     export_objects.append(obj_copy)
@@ -99,10 +93,12 @@ def prep_data(self, context):
     # combine all objects
     # # join objects
 
-    bpy.context.view_layer.objects.active = export_objects[0]
+    context.view_layer.objects.active = export_objects[0]
     bpy.ops.object.join()
 
-    return
+    export_data['OBJECT'] = context.view_layer.objects.active
+
+    return export_data
 
 
 def export(self, context):
@@ -110,104 +106,120 @@ def export(self, context):
     This function export
     """
     print("\n RUNNING CFBX...")
+    export_data = prep_data(self, context)
 
-    prep_data(self, context)
+    set_active_collection(context, export_data['COLLECTION'])
 
-    # prepare selected object for export
-    # duplicate selected
-    # grab all objects in active collection
+    move_active_center_to_location(context, export_data['CENTER'])
 
-    #     # create a new collection used by the exporter and move all export objects to it
-    #
-    #     context.scene.collection.children.link(export_collection)
+    move_object_to_origin(export_data['OBJECT'])
 
-    #     for obj in export_objects:
-    #         export_collection.objects.link(obj)
-
-    # join mbine selected
-
-    # return
-    # get the context based on current scene state
-    # context = utilities.get_current_context
-
-    # # set and find context area
-    # context_area = None
-    # for window in bpy.context.window_manager.windows:
-    #     screen = window.screen
-    # for area in screen.areas:
-    #     if area.type == 'VIEW_3D':
-    #         context_area = {'window': window, 'screen': screen, 'area': area}
-    #         break
-
-    # # # set the cursor to the active object center
-    # # bpy.ops.view3d.snap_cursor_to_selected(context_area)
-
-    # # deselect all objects
-    # bpy.ops.object.select_all(action='DESELECT')
-
-    # # set active object so there is something to join to
-    # if export_objects:
-    #     bpy.context.view_layer.objects.active = export_objects[0]
-
-    # # find all collection instances
-    # collection_instances = []
-    # for obj in export_objects:
-    #     if obj.type == 'EMPTY' and obj.instance_type == 'COLLECTION':
-    #         collection_instances.append(obj)
-
-    # # break up collection instances
-    # if (len(collection_instances) > 0):
-    #     bpy.ops.object.duplicates_make_real()
-
-    # # remove dead trail from export objects
-    # export_objects = export_objects[0]
-
-    # print(export_objects)
-    # # turn instanced objects into single objects
-    # bpy.ops.object.make_single_user({"selected_objects": export_objects},
-    #                                 type='ALL', object=True, obdata=True, material=False, animation=False)
-
-    # # set the center to the current cursor position
-    # bpy.ops.object.origin_set(
-    #     {"selected_objects": export_objects}, type='ORIGIN_CURSOR', center='MEDIAN')
-
-    # export_objects.location.x = 0
-    # export_objects.location.y = 0
-    # export_objects.location.z = 0
+    export_fbx_file()
 
 
-def export_fbx_file(properties):
+def set_active_collection(context, collection):
+    for layer_collection in context.view_layer.layer_collection.children:
+        if layer_collection.name == collection.name:
+            context.view_layer.active_layer_collection = layer_collection
+
+
+def move_active_center_to_location(context, location):
+    # moves center based on 3d cursor
+    # TODO find a better way at some point
+    old_cursor_location = context.scene.cursor.location.copy()
+    context.scene.cursor.location = location
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+
+    # reset cursor locaction to old location
+    context.scene.cursor.location = old_cursor_location
+
+
+def move_object_to_origin(obj):
+    obj.location.x = 0
+    obj.location.y = 0
+    obj.location.z = 0
+
+
+def export_fbx_file():
     """
     This function calls the blender export operator with specific properties
     """
-    # export the fbx file
-    # bpy.ops.export_scene.fbx(
-    #     filepath=file_path,
-    #     use_selection=True,
-    #     bake_anim_use_nla_strips=True,
-    #     bake_anim_use_all_actions=False,
-    #     object_types={'ARMATURE', 'MESH', 'EMPTY'},
-    #     use_custom_props=properties.use_custom_props,
-    #     global_scale=properties.global_scale,
-    #     apply_scale_options=properties.apply_scale_options,
-    #     axis_forward=properties.axis_forward,
-    #     axis_up=properties.axis_up,
-    #     apply_unit_scale=properties.apply_unit_scale,
-    #     bake_space_transform=properties.bake_space_transform,
-    #     mesh_smooth_type=properties.mesh_smooth_type,
-    #     use_subsurf=properties.use_subsurf,
-    #     use_mesh_modifiers=properties.use_mesh_modifiers,
-    #     use_mesh_edges=properties.use_mesh_edges,
-    #     use_tspace=properties.use_tspace,
-    #     primary_bone_axis=properties.primary_bone_axis,
-    #     secondary_bone_axis=properties.secondary_bone_axis,
-    #     armature_nodetype=properties.armature_nodetype,
-    #     use_armature_deform_only=properties.use_armature_deform_only,
-    #     add_leaf_bones=properties.add_leaf_bones,
-    #     bake_anim=properties.bake_anim,
-    #     bake_anim_use_all_bones=properties.bake_anim_use_all_bones,
-    #     bake_anim_force_startend_keying=properties.bake_anim_force_startend_keying,
-    #     bake_anim_step=properties.bake_anim_step,
-    #     bake_anim_simplify_factor=properties.bake_anim_simplify_factor,
-    #     use_metadata=properties.use_metadata
-    # )
+    file_path = "C:/Users/wsvas/OneDrive/Documents/temp/"
+    name = "test"
+    bpy.ops.export_scene.fbx(
+        filepath=file_path + name + ".fbx",
+        use_selection=True,
+        bake_anim_use_nla_strips=True,
+        bake_anim_use_all_actions=False,
+        object_types={'ARMATURE', 'MESH', 'EMPTY'},
+        use_active_collection=True,
+
+        use_custom_props=False,
+        # use_custom_props=properties.use_custom_props,
+
+        global_scale=1.0,
+        # global_scale=properties.global_scale,
+
+        apply_scale_options='FBX_SCALE_NONE',
+        # apply_scale_options=properties.apply_scale_options,
+
+        axis_forward='-Z',
+        # axis_forward=properties.axis_forward,
+
+        axis_up='Y',
+        # axis_up=properties.axis_up,
+
+        apply_unit_scale=True,
+        # apply_unit_scale=properties.apply_unit_scale,
+
+        bake_space_transform=True,
+        # bake_space_transform=properties.bake_space_transform,
+
+        mesh_smooth_type='FACE',
+        # mesh_smooth_type=properties.mesh_smooth_type,
+
+        use_subsurf=False,
+        # use_subsurf=properties.use_subsurf,
+
+        use_mesh_modifiers=True,
+        # use_mesh_modifiers=properties.use_mesh_modifiers,
+
+        use_mesh_edges=False,
+        # use_mesh_edges=properties.use_mesh_edges,
+
+        use_tspace=False,
+        # use_tspace=properties.use_tspace,
+
+        primary_bone_axis='Y',
+        # primary_bone_axis=properties.primary_bone_axis,
+
+        secondary_bone_axis='X',
+        # secondary_bone_axis=properties.secondary_bone_axis,
+
+        armature_nodetype='NULL',
+        # armature_nodetype=properties.armature_nodetype,
+
+        use_armature_deform_only=False,
+        # use_armature_deform_only=properties.use_armature_deform_only,
+
+        add_leaf_bones=True,
+        # add_leaf_bones=properties.add_leaf_bones,
+
+        bake_anim=True,
+        # bake_anim=properties.bake_anim,
+
+        bake_anim_use_all_bones=True,
+        # bake_anim_use_all_bones=properties.bake_anim_use_all_bones,
+
+        bake_anim_force_startend_keying=True,
+        # bake_anim_force_startend_keying=properties.bake_anim_force_startend_keying,
+
+        bake_anim_step=1.0,
+        # bake_anim_step=properties.bake_anim_step,
+
+        bake_anim_simplify_factor=1.0,
+        # bake_anim_simplify_factor=properties.bake_anim_simplify_factor,
+
+        use_metadata=True,
+        # use_metadata=properties.use_metadata
+    )
