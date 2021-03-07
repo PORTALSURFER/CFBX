@@ -69,46 +69,22 @@ def properties_menu(self, context):
     self.layout.menu(TOPBAR_MT_CFBX_set_properties.bl_idname)
 
 
-def test(self, context):
+def statusbar_info(self, context):
+    # TODO properly comment this function
 
     layout = self.layout
 
-    # input status
-    layout.template_input_status()
-
-    layout.separator_spacer()
-
-    # Messages
-    layout.template_reports_banner()
-
-    # # Progress Bar
-    layout.template_running_jobs()
-
-    layout.separator_spacer()
-
     row = layout.row(align=True)
     row.alignment = 'RIGHT'
-    row.scale_x = 2
+    row.scale_x = 8
     # row.split(align=False, factor=0.1)
-    # row.split(factor=0.0, align=True)
+
     if context.view_layer.active_layer_collection.collection.CFBX_settings.should_export:
         row.prop(context.view_layer.active_layer_collection.collection.CFBX_settings,
                  'fbx_folder_path', emboss=True, text="", expand=False, icon="SNAP_VOLUME")
-        row.operator("hexporter.path_selector", text="", icon='FILE_FOLDER')
-
-        layout.separator_spacer()
-
-    row = layout.row()
-    row.alignment = 'RIGHT'
-
-    # Stats & Info
-    row.label(text=context.screen.statusbar_info(), translate=False)
-
-    statusbar_info(self, context)
-
-
-def statusbar_info(self, context):
-    # TODO properly comment this function
+        row.scale_x = 1
+        row.operator("hexporter.path_selector", text="",
+                     icon='FILE_FOLDER')
 
     active_collection = context.view_layer.active_layer_collection
 
@@ -136,11 +112,11 @@ def statusbar_info(self, context):
 
 def collection_menu(self, context):
     layout = self.layout
-    layout.prop(bpy.context.view_layer.active_layer_collection.collection.CFBX_settings,
-                'should_export', text="CFBX object")
     if bpy.context.view_layer.active_layer_collection.collection.CFBX_settings.should_export:
         layout.operator("wm.cbfx_export_fbx",
                         text="Export Collection", icon='EXPORT')
+    layout.prop(bpy.context.view_layer.active_layer_collection.collection.CFBX_settings,
+                'should_export', text="CFBX object")
     layout.separator()
 
 
@@ -150,8 +126,8 @@ def add_menus():
     """
     bpy.types.OUTLINER_MT_collection.prepend(collection_menu)
 
-    bpy.types.STATUSBAR_HT_header.draw = test
-    # bpy.types.STATUSBAR_HT_header.append(statusbar_info)
+    # bpy.types.STATUSBAR_HT_header.draw = test
+    bpy.types.STATUSBAR_HT_header.append(statusbar_info)
 
     if not hasattr(bpy.types, TOPBAR_MT_CFBX.bl_idname):
         bpy.utils.register_class(TOPBAR_MT_CFBX)

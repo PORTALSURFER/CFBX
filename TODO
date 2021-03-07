@@ -1,5 +1,1 @@
-TODO add export ability
-TODO clean up export function
-TODO add export to outliner menu
-TODO add export path setting to outliner menu
-TODO 
+TODO dig down from selected object to the first collection which is tagged as an exportable object, export that

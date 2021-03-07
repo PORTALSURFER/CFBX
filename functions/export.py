@@ -6,12 +6,12 @@ from . import utilities
 
 
 def find_export_center(context):
-    if context.active_object in context.selected_objects:
-        return context.active_object.location
-    else:
-        utilities.report_warning(
-            f'No active selected object found, cursor position used as center instead')
-        return context.scene.cursor.location
+    # if context.active_object in context.selected_objects:
+    return context.active_object.location
+    # else:
+    # utilities.report_warning(
+    #     f'No active selected object found, cursor position used as center instead')
+    # return context.scene.cursor.location
 
 
 def create_export_buffer(context):
@@ -57,6 +57,10 @@ def prep_data(self, context):
 
     export_data['CENTER'] = export_center = find_export_center(context)
 
+    export_data['PATH'] = context.view_layer.active_layer_collection.collection.CFBX_settings.fbx_folder_path
+
+    export_data['NAME'] = context.view_layer.active_layer_collection.collection.name
+
     export_collection = create_export_buffer(context)
     if not export_collection:
         utilities.report_error(
@@ -77,18 +81,38 @@ def prep_data(self, context):
 
     bpy.ops.object.select_all(action='DESELECT')
 
-    for src_obj in bpy.data.objects:
+    instance_collision_objects = []
+
+    for src_obj in context.view_layer.objects:
         for obj_collection in src_obj.users_collection:
             # print(obj_collection.name)
             for collection in source_collections:
                 if collection.name == obj_collection.name:
                     # print(src_obj.name)
-                    obj_copy = src_obj.copy()
-                    obj_copy.data = src_obj.data.copy()
-                    export_objects.append(obj_copy)
-                    obj_copy.name = "CFBX_object"
-                    export_collection.objects.link(obj_copy)
-                    obj_copy.select_set(True)
+                    if src_obj.type == 'MESH':
+                        obj_copy = src_obj.copy()
+                        obj_copy.data = src_obj.data.copy()
+                        export_objects.append(obj_copy)
+                        obj_copy.name = "CFBX_MESH"
+                        export_collection.objects.link(obj_copy)
+                        obj_copy.select_set(True)
+                    if src_obj.type == 'EMPTY' and src_obj.instance_type == 'COLLECTION':
+                        obj_copy = src_obj.copy()
+                        obj_copy.instance_collection = src_obj.instance_collection
+                        obj_copy.name = "CFBX_COL_INSTANCE"
+                        export_collection.objects.link(obj_copy)
+
+                        instance_collision_objects.append(obj_copy)
+                        override = context.copy()
+                        override['selected_objects'] = instance_collision_objects
+                        override['active_object'] = instance_collision_objects[0]
+                        override['object'] = instance_collision_objects[0]
+                        override['selected_editable_objects'] = instance_collision_objects
+                        # print(override)
+
+                        bpy.ops.object.duplicates_make_real(override)
+
+                        bpy.data.objects.remove(obj_copy)
 
     # combine all objects
     # # join objects
@@ -114,7 +138,11 @@ def export(self, context):
 
     move_object_to_origin(export_data['OBJECT'])
 
-    export_fbx_file()
+    export_path = get_export_path(self, context, export_data)
+    try:
+        export_fbx_file(export_path)
+    except:
+        utilities.report_error(f"Failed to export, please check path")
 
 
 def set_active_collection(context, collection):
@@ -140,14 +168,19 @@ def move_object_to_origin(obj):
     obj.location.z = 0
 
 
-def export_fbx_file():
+def get_export_path(self, context, export_data):
+    name = export_data['NAME']
+    path = export_data['PATH']
+
+    return path + name
+
+
+def export_fbx_file(file_path):
     """
     This function calls the blender export operator with specific properties
     """
-    file_path = "C:/Users/wsvas/OneDrive/Documents/temp/"
-    name = "test"
     bpy.ops.export_scene.fbx(
-        filepath=file_path + name + ".fbx",
+        filepath=file_path + ".fbx",
         use_selection=True,
         bake_anim_use_nla_strips=True,
         bake_anim_use_all_actions=False,
