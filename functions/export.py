@@ -82,6 +82,8 @@ def prep_data(self, context):
     bpy.ops.object.select_all(action='DESELECT')
 
     instance_collision_objects = []
+    mesh_objects = []
+    curve_objects = []
 
     for src_obj in context.view_layer.objects:
         for obj_collection in src_obj.users_collection:
@@ -96,6 +98,15 @@ def prep_data(self, context):
                         obj_copy.name = "CFBX_MESH"
                         export_collection.objects.link(obj_copy)
                         obj_copy.select_set(True)
+
+                        mesh_objects.append(obj_copy)
+                        override = context.copy()
+                        override['selected_objects'] = mesh_objects
+                        override['active_object'] = mesh_objects[0]
+                        override['object'] = mesh_objects[0]
+                        override['selected_editable_objects'] = mesh_objects
+
+                        bpy.ops.object.convert(override, target='MESH')
                     if src_obj.type == 'EMPTY' and src_obj.instance_type == 'COLLECTION':
                         obj_copy = src_obj.copy()
                         obj_copy.instance_collection = src_obj.instance_collection
@@ -113,6 +124,20 @@ def prep_data(self, context):
                         bpy.ops.object.duplicates_make_real(override)
 
                         bpy.data.objects.remove(obj_copy)
+                    if src_obj.type == 'CURVE':
+                        obj_copy = src_obj.copy()
+
+                        obj_copy.name = "CFBX_CURVE"
+                        export_collection.objects.link(obj_copy)
+
+                        curve_objects.append(obj_copy)
+                        override = context.copy()
+                        override['selected_objects'] = curve_objects
+                        override['active_object'] = curve_objects[0]
+                        override['object'] = curve_objects[0]
+                        override['selected_editable_objects'] = curve_objects
+
+                        bpy.ops.object.convert(override, target='MESH')
 
     # combine all objects
     # # join objects
