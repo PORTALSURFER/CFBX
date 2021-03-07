@@ -87,7 +87,9 @@ def prep_data(self, context):
 
     instance_collection_override = None
 
-    for src_obj in context.view_layer.objects:
+    override = context.copy()
+
+    for src_obj in bpy.data.objects:
         for obj_collection in src_obj.users_collection:
             # print(obj_collection.name)
             for collection in source_collections:
@@ -101,16 +103,17 @@ def prep_data(self, context):
                         export_collection.objects.link(obj_copy)
                         obj_copy.select_set(True)
 
-                        # attempting to apply modifiers
-                        # mesh_objects.append(obj_copy)
+                        # # attempting to apply modifiers
+                        # # mesh_objects.append(obj_copy)
                         # override = context.copy()
-                        # override['selected_objects'] = mesh_objects
-                        # override['active_object'] = mesh_objects[0]
-                        # override['object'] = mesh_objects[0]
-                        # override['selected_editable_objects'] = mesh_objects
+                        # override['selected_objects'] = obj_copy
+                        # override['active_object'] = obj_copy
+                        # # override['object'] = mesh_objects[0]
+                        # # override['selected_editable_objects'] = mesh_objects
+                        # # bpy.ops.object.convert(override, target='MESH')
                         # bpy.ops.object.convert(override, target='MESH')
 
-                    if src_obj.type == 'EMPTY' and src_obj.instance_type == 'COLLECTION':
+                    elif src_obj.type == 'EMPTY' and src_obj.instance_type == 'COLLECTION':
                         obj_copy = src_obj.copy()
                         obj_copy.instance_collection = src_obj.instance_collection
                         obj_copy.name = "CFBX_COL_INSTANCE"
@@ -127,25 +130,27 @@ def prep_data(self, context):
                             instance_collection_override)
 
                         bpy.data.objects.remove(obj_copy)
-                    if src_obj.type == 'CURVE':
+                    elif src_obj.type == 'CURVE':
                         obj_copy = src_obj.copy()
-
+                        obj_copy.data = src_obj.data.copy()
                         obj_copy.name = "CFBX_CURVE"
                         export_collection.objects.link(obj_copy)
+                        obj_copy.select_set(True)
 
-                        # curve_objects.append(obj_copy)
+                        # # curve_objects.append(obj_copy)
                         # override = context.copy()
-                        # override['selected_objects'] = curve_objects
-                        # override['active_object'] = curve_objects[0]
-                        # override['object'] = curve_objects[0]
-                        # override['selected_editable_objects'] = curve_objects
+                        # override['selected_objects'] = obj_copy
+                        # override['active_object'] = obj_copy
+                        # override['object'] = obj_copy
+                        # override['selected_editable_objects'] = obj_copy
 
-                        # bpy.ops.object.convert(override, target=`'MESH')
+                        # print(obj_copy.name)
 
     # combine all objects
     # # join objects
 
     context.view_layer.objects.active = export_objects[0]
+
     bpy.ops.object.convert(target='MESH')
     bpy.ops.object.join()
 
