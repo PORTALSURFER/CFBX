@@ -2,6 +2,7 @@
 # https: //www.blender.org/about/license/
 
 import bpy
+import mathutils
 from . import utilities
 
 
@@ -20,7 +21,6 @@ def create_export_buffer(context):
     export_collection = None
     # check if an export buffer exists, if so, delete it.
     export_collection_name = 'CFBX Export Buffer'
-    export_collection = None
 
     # if the buffer does not exist create it
     if not export_collection_name in [collection.name for collection in bpy.data.collections]:
@@ -71,15 +71,15 @@ def prep_data(self, context):
 
     # Fill export collection with the right objects
     # also names the objects so they can be found easily in Blender
-    source_collection_root = context.view_layer.active_layer_collection
+    source_collection = context.view_layer.active_layer_collection.collection
     export_objects = []
-    source_objects = source_collection_root
+    # source_objects = source_collection_root
 
-    source_collections = []
-    source_collections.append(source_collection_root)
-    get_collection_children(source_collection_root, source_collections)
+    # source_collections = []
+    # source_collections.append(source_collection_root)
+    # get_collection_children(source_collection_root, source_collections)
 
-    bpy.ops.object.select_all(action='DESELECT')
+    # bpy.ops.object.select_all(action='DESELECT')
 
     instance_collision_objects = []
     mesh_objects = []
@@ -89,74 +89,243 @@ def prep_data(self, context):
 
     override = context.copy()
 
-    for src_obj in bpy.data.objects:
-        for obj_collection in src_obj.users_collection:
-            # print(obj_collection.name)
-            for collection in source_collections:
-                if collection.name == obj_collection.name:
-                    # print(src_obj.name)
-                    if src_obj.type == 'MESH':
-                        obj_copy = src_obj.copy()
-                        obj_copy.data = src_obj.data.copy()
-                        export_objects.append(obj_copy)
-                        obj_copy.name = "CFBX_MESH"
-                        export_collection.objects.link(obj_copy)
-                        obj_copy.select_set(True)
+    source_objects = {'MESH': [], 'EMPTY': [],
+                      'COLLECTION_INSTANCE': [], 'CURVE': []}
+    # grab all the objects
+    print("..Grabbing source objects..")
+    get_all_real_objects(self, context, source_collection, source_objects)
 
-                        # # attempting to apply modifiers
-                        # # mesh_objects.append(obj_copy)
-                        # override = context.copy()
-                        # override['selected_objects'] = obj_copy
-                        # override['active_object'] = obj_copy
-                        # # override['object'] = mesh_objects[0]
-                        # # override['selected_editable_objects'] = mesh_objects
-                        # # bpy.ops.object.convert(override, target='MESH')
-                        # bpy.ops.object.convert(override, target='MESH')
+    # for collection_instance_object in source_objects['COLLECTION_INSTANCE']:
+    #     for obj in collection_instance_object.instance_collection.all_objects:
+    #         print(obj.name)
 
-                    elif src_obj.type == 'EMPTY' and src_obj.instance_type == 'COLLECTION':
-                        obj_copy = src_obj.copy()
-                        obj_copy.instance_collection = src_obj.instance_collection
-                        obj_copy.name = "CFBX_COL_INSTANCE"
-                        export_collection.objects.link(obj_copy)
+    for mesh_object in source_objects['MESH']:
+        print("source_object : " + mesh_object.name)
+        # export_object = mesh_object.copy()
+        # export_object.data = mesh_object.data.copy()
+        # export_object.name = "CFBX_MESH | " + mesh_object.name
 
-                        instance_collision_objects.append(obj_copy)
-                        instance_collection_override = context.copy()
-                        instance_collection_override['selected_objects'] = instance_collision_objects
-                        instance_collection_override['active_object'] = instance_collision_objects[0]
-                        instance_collection_override['object'] = instance_collision_objects[0]
-                        instance_collection_override['selected_editable_objects'] = instance_collision_objects
+        export_collection.objects.link(mesh_object)
+        mesh_object.select_set(True)
 
-                        bpy.ops.object.duplicates_make_real(
-                            instance_collection_override)
+    # print(obj)
+    # obj_copy.data = obj.data.copy()
+    # export_collection.objects.link(obj_copy)
 
-                        bpy.data.objects.remove(obj_copy)
-                    elif src_obj.type == 'CURVE':
-                        obj_copy = src_obj.copy()
-                        obj_copy.data = src_obj.data.copy()
-                        obj_copy.name = "CFBX_CURVE"
-                        export_collection.objects.link(obj_copy)
-                        obj_copy.select_set(True)
+    # for src_obj in bpy.data.objects:
+    #     for obj_collection in src_obj.users_collection:
+    #         # print(obj_collection.name)
+    #         for collection in source_collections:
+    #             if collection.name == obj_collection.name:
+    #                 # print(src_obj.name)
+    #                 if src_obj.type == 'MESH':
+    #                     obj_copy = src_obj.copy()
+    #                     obj_copy.data = src_obj.data.copy()
+    #                     export_objects.append(obj_copy)
+    #                     obj_copy.name = "CFBX_MESH"
+    #                     export_collection.objects.link(obj_copy)
+    #                     obj_copy.select_set(True)
 
-                        # # curve_objects.append(obj_copy)
-                        # override = context.copy()
-                        # override['selected_objects'] = obj_copy
-                        # override['active_object'] = obj_copy
-                        # override['object'] = obj_copy
-                        # override['selected_editable_objects'] = obj_copy
+    #                     # # attempting to apply modifiers
+    #                     # # mesh_objects.append(obj_copy)
+    #                     # override = context.copy()
+    #                     # override['selected_objects'] = obj_copy
+    #                     # override['active_object'] = obj_copy
+    #                     # # override['object'] = mesh_objects[0]
+    #                     # # override['selected_editable_objects'] = mesh_objects
+    #                     # # bpy.ops.object.convert(override, target='MESH')
+    #                     # bpy.ops.object.convert(override, target='MESH')
 
-                        # print(obj_copy.name)
+    #                 elif src_obj.type == 'EMPTY' and src_obj.instance_type == 'COLLECTION':
+    #                     obj_copy = src_obj.copy()
+    #                     obj_copy.instance_collection = src_obj.instance_collection
+    #                     obj_copy.name = "CFBX_COL_INSTANCE"
+    #                     export_collection.objects.link(obj_copy)
+
+    #                     instance_collision_objects.append(obj_copy)
+    #                     instance_collection_override = context.copy()
+    #                     instance_collection_override['selected_objects'] = instance_collision_objects
+    #                     instance_collection_override['active_object'] = instance_collision_objects[0]
+    #                     instance_collection_override['object'] = instance_collision_objects[0]
+    #                     instance_collection_override['selected_editable_objects'] = instance_collision_objects
+
+    #                     bpy.ops.object.duplicates_make_real(
+    #                         instance_collection_override)
+
+    #                     bpy.data.objects.remove(obj_copy)
+    #                 elif src_obj.type == 'CURVE':
+    #                     obj_copy = src_obj.copy()
+    #                     obj_copy.data = src_obj.data.copy()
+    #                     obj_copy.name = "CFBX_CURVE"
+    #                     export_collection.objects.link(obj_copy)
+    #                     obj_copy.select_set(True)
+
+    #                     # # curve_objects.append(obj_copy)
+    #                     # override = context.copy()
+    #                     # override['selected_objects'] = obj_copy
+    #                     # override['active_object'] = obj_copy
+    #                     # override['object'] = obj_copy
+    #                     # override['selected_editable_objects'] = obj_copy
+
+    #                     # print(obj_copy.name)
 
     # combine all objects
     # # join objects
 
-    context.view_layer.objects.active = export_objects[0]
+    # context.view_layer.objects.active = export_objects[0]
 
-    bpy.ops.object.convert(target='MESH')
-    bpy.ops.object.join()
+    # bpy.ops.object.convert(target='MESH')
+    # bpy.ops.object.join()
 
-    export_data['OBJECT'] = context.view_layer.objects.active
+    # export_data['OBJECT'] = context.view_layer.objects.active
 
     return export_data
+
+
+def copy_and_prepare_source_object(self, context, obj, offset, source_objects):
+    depsgraph = context.evaluated_depsgraph_get()
+    eval_obj = obj.evaluated_get(depsgraph)
+
+    new_obj = bpy.data.objects.new("CFBX_"+obj.type+" | " + obj.name,
+                                   bpy.data.meshes.new_from_object(eval_obj))
+
+    # new_obj.data.transform = obj.data.transform
+    new_obj.location = obj.location
+    new_obj.rotation_euler = obj.rotation_euler
+    new_obj.scale = obj.scale
+
+    # apply transforms to mesh
+    wmx = obj.matrix_world
+    new_obj.data.transform(wmx)
+
+    # zero out at object level
+    new_obj.matrix_world = mathutils.Matrix()
+
+    if offset:
+        new_obj.location += offset
+
+    source_objects['MESH'].append(new_obj)
+
+
+def copyMesh(
+        target,
+        source,
+        doUpdate=True,
+        translate=[0.0, 0.0, 0.0],
+        alignTo=None):
+
+  result = False
+
+  # Check that the passed objects exist and are mesh objects.
+  if target != None \
+          and target.type == 'MESH' \
+          and source != None \
+          and source.type == 'MESH':
+
+    # Get the source and target mesh data, applying any modifiers to the source.
+    ### TODO: Should we get this in some other way?
+    scene = bpy.context.scene
+    sourceMesh = source.to_mesh(scene, True, 'PREVIEW')
+    targetMesh = target.data
+
+    ### VERTICES ###
+
+    numVertices = len(targetMesh.vertices)
+    numAppendVertices = len(sourceMesh.vertices)
+    targetMesh.vertices.add(numAppendVertices)
+
+    for v in range(numAppendVertices):
+
+        # Transform the vertex coordinates into that of the new object.
+        newLocation = sourceMesh.vertices[v].co
+
+        # Apply align/translate transformations.
+        if alignTo != None:
+          quat = alignTo.to_track_quat('-Y', 'Z')
+          mat = quat.to_matrix().to_4x4()
+          mat[3][0:3] = translate
+          newLocation = mat * newLocation
+
+        targetMesh.vertices[numVertices + v].co = newLocation
+
+    ### MATERIALS ###
+
+    # We need maintain a map between our source and target materials as we'll be merging, not
+    # simply appending like we do with the vertices and faces.
+    materialsMap = {}
+
+    # Link any materials to the target that are linked to the source (without duplicating links).
+    # Then, when we bring over the faces we'll also bring over the material assignments.
+    for sourceMaterialIndex in range(len(sourceMesh.materials)):
+
+      sourceMaterial = sourceMesh.materials[sourceMaterialIndex]
+      targetHasMaterial = False
+
+      for targetMaterialIndex in range(len(targetMesh.materials)):
+
+        targetMaterial = targetMesh.materials[targetMaterialIndex]
+        if sourceMaterial.name == targetMaterial.name:
+          targetHasMaterial = True
+          materialsMap[sourceMaterialIndex] = targetMaterialIndex
+          break
+
+      if not targetHasMaterial:
+        materialsMap[sourceMaterialIndex] = len(targetMesh.materials)
+        targetMesh.materials.append(sourceMaterial)
+
+    ### POLYGONS ###
+
+    numFaces = len(targetMesh.polygons)
+    numAppendFaces = len(sourceMesh.polygons)
+    targetMesh.polygons.add(numAppendFaces)
+
+    for sourceFaceIndex in range(numAppendFaces):
+
+        sourceFace = sourceMesh.polygons[sourceFaceIndex]
+        targetFace = targetMesh.polygons[sourceFaceIndex + numFaces]
+
+        x_fv = sourceFace.vertices
+        o_fv = [i + numVertices for i in x_fv]
+
+        # However, we need to offset the index by the number of faces in the host mesh we are appending to.
+        if len(x_fv) == 4:
+            targetFace.vertices_raw = o_fv
+        else:
+            targetFace.vertices = o_fv
+
+        # Copy the face smooth and material assignments (only if there are materials to assign).
+        targetFace.use_smooth = sourceFace.use_smooth
+
+        if(len(materialsMap) & gt; 0):
+          targetFace.material_index = materialsMap[sourceFace.material_index]
+
+    if doUpdate == True:
+        targetMesh.update(calc_edges=True)
+
+    result = True
+
+  return result
+
+
+def get_all_real_objects(self, context, source_collection, source_objects, offset=None):
+    for obj in source_collection.all_objects:
+        if obj.type in ['MESH', 'CURVE']:
+            copy_and_prepare_source_object(
+                self, context, obj, offset, source_objects)
+        elif obj.type == 'EMPTY':
+            if obj.instance_type == 'COLLECTION':
+                # collection found, so dive deeper
+                print("__ Diving into COLLECTION_INSTANCE : " +
+                      obj.name + " with offset : " + str(offset))
+                offset = obj.location
+                get_all_real_objects(self, context,
+                                     obj.instance_collection, source_objects, offset)
+            else:
+                copy_and_prepare_source_object(self, context,
+                                               'EMPTY', obj, offset, source_objects)
+        elif obj.type == 'CURVE':
+            copy_and_prepare_source_object(self, context,
+                                           'CURVE', obj, offset, source_objects)
 
 
 def export(self, context):
@@ -166,6 +335,7 @@ def export(self, context):
     print("\n RUNNING CFBX...")
     export_data = prep_data(self, context)
 
+    return
     set_active_collection(context, export_data['COLLECTION'])
 
     move_active_center_to_location(context, export_data['CENTER'])
