@@ -111,7 +111,7 @@ def prep_data(self, context):
 
     join_objects_count = len(source_objects['MESH'])
     host_object = source_objects['MESH'][join_objects_count - 1]
-    print("HOST | " + host_object.name)
+    # print("HOST | " + host_object.name)
     for i in range(join_objects_count - 1):
         # print(source_objects['MESH'][i])
         join.join_objects(source_objects['MESH'][i], host_object)
@@ -245,7 +245,6 @@ def export(self, context):
     print("\n RUNNING CFBX...")
     # print(bpy.path.abspath("/test/"))
     export_data = prep_data(self, context)
-    return
 
     set_active_collection(context, export_data['COLLECTION'])
 
