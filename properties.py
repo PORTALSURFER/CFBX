@@ -51,6 +51,9 @@ class CFBXCollectionProperties:
     """
     This class holds the variables for the Collections
     """
+
+    # export_path = "/"
+
     should_export: bpy.props.BoolProperty(
         default=False,
         # update=graphics.export_toggle,
@@ -61,7 +64,7 @@ class CFBXCollectionProperties:
     )
     fbx_folder_path: bpy.props.StringProperty(
         name="FBX Export Path",
-        default=r"Set an export path here",
+        default=bpy.path.abspath("/"),
         # update=utilities.auto_format_unreal_mesh_folder_path,
         description=("This is the mesh export path.")
     )

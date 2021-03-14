@@ -4,6 +4,7 @@
 import bpy
 import mathutils
 from . import utilities
+from . import join
 
 
 def find_export_center(context):
@@ -108,6 +109,14 @@ def prep_data(self, context):
         export_collection.objects.link(mesh_object)
         mesh_object.select_set(True)
 
+    join_objects_count = len(source_objects['MESH'])
+    host_object = source_objects['MESH'][join_objects_count - 1]
+    for i in range(join_objects_count - 1):
+        # print(source_objects['MESH'][i])
+        join.join_objects(source_objects['MESH'][i], host_object)
+
+    # for obj in source_objects['MESH']:
+
     # print(obj)
     # obj_copy.data = obj.data.copy()
     # export_collection.objects.link(obj_copy)
@@ -177,7 +186,7 @@ def prep_data(self, context):
     # bpy.ops.object.convert(target='MESH')
     # bpy.ops.object.join()
 
-    # export_data['OBJECT'] = context.view_layer.objects.active
+    export_data['OBJECT'] = context.view_layer.objects.active
 
     return export_data
 
@@ -207,106 +216,6 @@ def copy_and_prepare_source_object(self, context, obj, offset, source_objects):
     source_objects['MESH'].append(new_obj)
 
 
-def copyMesh(
-        target,
-        source,
-        doUpdate=True,
-        translate=[0.0, 0.0, 0.0],
-        alignTo=None):
-
-  result = False
-
-  # Check that the passed objects exist and are mesh objects.
-  if target != None \
-          and target.type == 'MESH' \
-          and source != None \
-          and source.type == 'MESH':
-
-    # Get the source and target mesh data, applying any modifiers to the source.
-    ### TODO: Should we get this in some other way?
-    scene = bpy.context.scene
-    sourceMesh = source.to_mesh(scene, True, 'PREVIEW')
-    targetMesh = target.data
-
-    ### VERTICES ###
-
-    numVertices = len(targetMesh.vertices)
-    numAppendVertices = len(sourceMesh.vertices)
-    targetMesh.vertices.add(numAppendVertices)
-
-    for v in range(numAppendVertices):
-
-        # Transform the vertex coordinates into that of the new object.
-        newLocation = sourceMesh.vertices[v].co
-
-        # Apply align/translate transformations.
-        if alignTo != None:
-          quat = alignTo.to_track_quat('-Y', 'Z')
-          mat = quat.to_matrix().to_4x4()
-          mat[3][0:3] = translate
-          newLocation = mat * newLocation
-
-        targetMesh.vertices[numVertices + v].co = newLocation
-
-    ### MATERIALS ###
-
-    # We need maintain a map between our source and target materials as we'll be merging, not
-    # simply appending like we do with the vertices and faces.
-    materialsMap = {}
-
-    # Link any materials to the target that are linked to the source (without duplicating links).
-    # Then, when we bring over the faces we'll also bring over the material assignments.
-    for sourceMaterialIndex in range(len(sourceMesh.materials)):
-
-      sourceMaterial = sourceMesh.materials[sourceMaterialIndex]
-      targetHasMaterial = False
-
-      for targetMaterialIndex in range(len(targetMesh.materials)):
-
-        targetMaterial = targetMesh.materials[targetMaterialIndex]
-        if sourceMaterial.name == targetMaterial.name:
-          targetHasMaterial = True
-          materialsMap[sourceMaterialIndex] = targetMaterialIndex
-          break
-
-      if not targetHasMaterial:
-        materialsMap[sourceMaterialIndex] = len(targetMesh.materials)
-        targetMesh.materials.append(sourceMaterial)
-
-    ### POLYGONS ###
-
-    numFaces = len(targetMesh.polygons)
-    numAppendFaces = len(sourceMesh.polygons)
-    targetMesh.polygons.add(numAppendFaces)
-
-    for sourceFaceIndex in range(numAppendFaces):
-
-        sourceFace = sourceMesh.polygons[sourceFaceIndex]
-        targetFace = targetMesh.polygons[sourceFaceIndex + numFaces]
-
-        x_fv = sourceFace.vertices
-        o_fv = [i + numVertices for i in x_fv]
-
-        # However, we need to offset the index by the number of faces in the host mesh we are appending to.
-        if len(x_fv) == 4:
-            targetFace.vertices_raw = o_fv
-        else:
-            targetFace.vertices = o_fv
-
-        # Copy the face smooth and material assignments (only if there are materials to assign).
-        targetFace.use_smooth = sourceFace.use_smooth
-
-        if(len(materialsMap) & gt; 0):
-          targetFace.material_index = materialsMap[sourceFace.material_index]
-
-    if doUpdate == True:
-        targetMesh.update(calc_edges=True)
-
-    result = True
-
-  return result
-
-
 def get_all_real_objects(self, context, source_collection, source_objects, offset=None):
     for obj in source_collection.all_objects:
         if obj.type in ['MESH', 'CURVE']:
@@ -333,9 +242,9 @@ def export(self, context):
     This function export
     """
     print("\n RUNNING CFBX...")
+    # print(bpy.path.abspath("/test/"))
     export_data = prep_data(self, context)
 
-    return
     set_active_collection(context, export_data['COLLECTION'])
 
     move_active_center_to_location(context, export_data['CENTER'])
