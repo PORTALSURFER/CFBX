@@ -12,7 +12,7 @@ bl_info = {
     "name": "CFBX",
     "author": "PORTALSURFER",
     "blender": (2, 80, 0),
-    "version": (0, 0, 1),
+    "version": (0, 0, 2),
     "location": "Outliner -> ContextMenu -> CFBX",
     "description": "Export active collection as FBX",
     "warning": "",
