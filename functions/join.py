@@ -40,11 +40,15 @@ def join_meshes(source_mesh, target_mesh, remap_material_index_table, source_wmx
     host_bmesh.verts.ensure_lookup_table()
 
     # grabs uv layer 0 and 1, does not support any more right now
-    host_texuv_layer = host_bmesh.loops.layers.uv[0]
+    host_texuv_layer = None
+    if len(host_bmesh.loops.layers.uv.items()) > 0:
+        host_texuv_layer = host_bmesh.loops.layers.uv[0]
     host_lmuv_layer = None
     if len(host_bmesh.loops.layers.uv.items()) > 1:
         host_lmuv_layer = host_bmesh.loops.layers.uv[1]
-    source_texuv_layer = source_bmesh.loops.layers.uv[0]
+    source_texuv_layer = None
+    if len(source_bmesh.loops.layers.uv.items()) > 0:
+        source_texuv_layer = source_bmesh.loops.layers.uv[0]
     source_lmuv_layer = None
     if len(source_bmesh.loops.layers.uv.items()) > 1:
         source_lmuv_layer = source_bmesh.loops.layers.uv[1]
@@ -60,6 +64,7 @@ def join_meshes(source_mesh, target_mesh, remap_material_index_table, source_wmx
 
         new_face = add_face(tuple(host_bmesh.verts[i.index+host_bmesh_verts_amount]
                                   for i in face.verts))
+        # new_face.smooth = True
 
         # reassing material index
         for remap_index in remap_material_index_table:
@@ -101,7 +106,6 @@ def join_meshes(source_mesh, target_mesh, remap_material_index_table, source_wmx
     print(source_bmesh.loops.layers.uv.keys())
     print(source_bmesh.loops.layers.uv['UVMap'])
 
-    # for layprint(face)er in enumerate(source_bmesh.loops.layers):
     # TODO uv_list is a list of uv tuples? need to grab this from the source mesh
     # loop[uv_layer].uv = uv_list[i]
     # print(uv)
