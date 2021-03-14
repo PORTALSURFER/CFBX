@@ -93,7 +93,7 @@ def prep_data(self, context):
     source_objects = {'MESH': [], 'EMPTY': [],
                       'COLLECTION_INSTANCE': [], 'CURVE': []}
     # grab all the objects
-    print("..Grabbing source objects..")
+    # print("..Grabbing source objects..")
     get_all_real_objects(self, context, source_collection, source_objects)
 
     # for collection_instance_object in source_objects['COLLECTION_INSTANCE']:
@@ -101,7 +101,7 @@ def prep_data(self, context):
     #         print(obj.name)
 
     for mesh_object in source_objects['MESH']:
-        print("source_object : " + mesh_object.name)
+        # print("source_object : " + mesh_object.name)
         # export_object = mesh_object.copy()
         # export_object.data = mesh_object.data.copy()
         # export_object.name = "CFBX_MESH | " + mesh_object.name
@@ -111,6 +111,7 @@ def prep_data(self, context):
 
     join_objects_count = len(source_objects['MESH'])
     host_object = source_objects['MESH'][join_objects_count - 1]
+    print("HOST | " + host_object.name)
     for i in range(join_objects_count - 1):
         # print(source_objects['MESH'][i])
         join.join_objects(source_objects['MESH'][i], host_object)
@@ -224,8 +225,8 @@ def get_all_real_objects(self, context, source_collection, source_objects, offse
         elif obj.type == 'EMPTY':
             if obj.instance_type == 'COLLECTION':
                 # collection found, so dive deeper
-                print("__ Diving into COLLECTION_INSTANCE : " +
-                      obj.name + " with offset : " + str(offset))
+                # print("__ Diving into COLLECTION_INSTANCE : " +
+                #   obj.name + " with offset : " + str(offset))
                 offset = obj.location
                 get_all_real_objects(self, context,
                                      obj.instance_collection, source_objects, offset)
@@ -244,12 +245,14 @@ def export(self, context):
     print("\n RUNNING CFBX...")
     # print(bpy.path.abspath("/test/"))
     export_data = prep_data(self, context)
+    return
 
     set_active_collection(context, export_data['COLLECTION'])
 
     move_active_center_to_location(context, export_data['CENTER'])
 
-    move_object_to_origin(export_data['OBJECT'])
+    # TODO this is moving the wrong object to the center
+    # move_object_to_origin(export_data['OBJECT'])
 
     export_path = get_export_path(self, context, export_data)
     try:
